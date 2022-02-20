@@ -29,6 +29,11 @@ namespace MiniPl
         {
             return line;
         }
+
+        public override string ToString()
+        {
+            return type + " " + value + " " + line;
+        }
     }
 
     enum TokenType

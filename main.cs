@@ -30,12 +30,11 @@ namespace MiniPl
 
                     Scanner scanner = new Scanner();
                     List<Token> tokens = scanner.scan(file);
-                    Console.WriteLine(tokens.Count);
+                    Console.WriteLine(tokens.Count + " tokens");
 
-                    Console.WriteLine("");
                     foreach (var token in tokens)
                     {
-                        Console.WriteLine(token.GetTokenType()+ " " + token.GetValue() + " " + token.GetLine().ToString());
+                        Console.WriteLine(token);
                     }
                     Console.WriteLine("");
                 }

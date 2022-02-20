@@ -50,9 +50,6 @@ namespace MiniPl
                     case '-':
                         tokens.Add(new Token(TokenType.MINUS, c.ToString(), line));
                         break;
-                    case '*':
-                        tokens.Add(new Token(TokenType.STAR, c.ToString(), line));
-                        break;
                     case '(':
                         tokens.Add(new Token(TokenType.LEFT_PAREN, c.ToString(), line));
                         break;
@@ -70,6 +67,9 @@ namespace MiniPl
                         break;
                     case '<':
                         tokens.Add(new Token(TokenType.LESS, c.ToString(), line));
+                        break;
+                    case '*':
+                        tokens.Add(new Token(TokenType.STAR, c.ToString(), line));
                         break;
                     case ':':
                         if (peek(start).Equals('='))
@@ -95,6 +95,11 @@ namespace MiniPl
                             start++;
                             skipComment();
 
+                        }
+                        else if (peek(start).Equals('*'))
+                        {
+                            start++;
+                            skipMultiComment();
                         }
                         else
                         {
@@ -129,6 +134,11 @@ namespace MiniPl
                                 tokens.Add(new Token(TokenType.IDENTIFIER, val, line));
                             }
                         }
+                        else
+                        {
+                            Error e = new Error("invalid token " + c, line);
+                            Console.WriteLine(e);
+                        }
                         break;
                 }
 
@@ -149,6 +159,8 @@ namespace MiniPl
             }
             else
             {
+                Error e = new Error("end of file error", line);
+                Console.WriteLine(e);
                 return '\0';
             }
         }
@@ -179,15 +191,16 @@ namespace MiniPl
                 current++;
                 if (current == end)
                 {
-                    Console.WriteLine("unclosed string");
+                    Error e = new Error("unclosed string", line);
+                    Console.WriteLine(e);
                     break;
                 }
-                if (text[current].Equals('\"'))
+                else if (text[current].Equals('\"'))
                 {
                     start = current;
                     break;
                 }
-                if (text[current].Equals('\\'))
+                else if (text[current].Equals('\\'))
                 {
                     char next = peek(current);
                     if (next.Equals('\"'))
@@ -263,13 +276,47 @@ namespace MiniPl
         private void skipComment()
         {
             current = start;
-            while(current < end) {
+            while (current < end)
+            {
                 current++;
                 char c = text[current];
-                if(c.Equals('\n')) {
+                if (c.Equals('\n'))
+                {
                     line++;
                     start = current;
                     break;
+                }
+            }
+        }
+
+        private void skipMultiComment()
+        {
+            current = start;
+            int tempLine = line;
+            while (current < end)
+            {
+                current++;
+                if (current == end)
+                {
+                    Error e = new Error("unclosed comment", line);
+                    Console.WriteLine(e);
+                    start++;
+                    break;
+                }
+                char c = text[current];
+                if (c.Equals('\n'))
+                {
+                    tempLine++;
+                }
+                if (c.Equals('*'))
+                {
+                    if (peek(current).Equals('/'))
+                    {
+                        current++;
+                        start = current;
+                        line = tempLine;
+                        break;
+                    }
                 }
             }
         }
