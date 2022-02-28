@@ -8,7 +8,9 @@ namespace MiniPl
         static private List<Token> tokens;
         static private int current = 0;
 
-        static private List<TokenType> operators = new List<TokenType>() {TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, TokenType.AND, TokenType.EQUAL, TokenType.LESS};
+        static private bool errors = false;
+
+        static private List<TokenType> operators = new List<TokenType>() { TokenType.PLUS, TokenType.MINUS, TokenType.STAR, TokenType.SLASH, TokenType.AND, TokenType.EQUAL, TokenType.LESS };
 
         public Parser(List<Token> tokens_)
         {
@@ -27,6 +29,7 @@ namespace MiniPl
             }
             Error e = new Error("PARSE ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
             Console.WriteLine(e);
+            errors = true;
         }
 
 
@@ -35,34 +38,75 @@ namespace MiniPl
             return tokens[current].type == type;
         }
 
-        private TokenType peek() {
+        private TokenType peek()
+        {
             return tokens[current + 1].type;
         }
 
         public void parse()
         {
+            current = 0;
+            errors = false;
+            statements();
+        }
+
+        private void statements()
+        {
             //statement();
             //match(TokenType.SEMICOLON);
-            while (!check(TokenType.EOF))
+            while (!check(TokenType.EOF) & !check(TokenType.END) & !errors)
             {
-            statement();
-            match(TokenType.SEMICOLON);
+                Console.WriteLine("statements start");
+                statement();
+                match(TokenType.SEMICOLON);
             }
-
         }
 
         private void statement()
         {
+            Console.WriteLine("statement start");
             switch (tokens[current].type)
             {
                 case TokenType.VAR:
                     variableDeclaration();
+                    return;
+                case TokenType.IDENTIFIER:
+                    match(TokenType.IDENTIFIER);
+                    match(TokenType.STATEMENT);
+                    expression();
+                    return;
+                case TokenType.READ:
+                    match(TokenType.READ);
+                    match(TokenType.IDENTIFIER);
+                    return;
+                case TokenType.PRINT:
+                    match(TokenType.PRINT);
+                    expression();
+                    return;
+                case TokenType.ASSERT:
+                    match(TokenType.ASSERT);
+                    match(TokenType.LEFT_PAREN);
+                    expression();
+                    match(TokenType.RIGHT_PAREN);
+                    return;
+                case TokenType.FOR:
+                    match(TokenType.FOR);
+                    match(TokenType.IDENTIFIER);
+                    match(TokenType.IN);
+                    expression();
+                    match(TokenType.DOUBLEDOT);
+                    expression();
+                    match(TokenType.DO);
+                    statements();
+                    match(TokenType.END);
+                    match(TokenType.FOR);
                     return;
             }
         }
 
         private void variableDeclaration()
         {
+            Console.WriteLine("variable start");
             match(TokenType.VAR);
             match(TokenType.IDENTIFIER);
             match(TokenType.COLON);
@@ -76,20 +120,24 @@ namespace MiniPl
 
         private void expression()
         {
-            if (check(TokenType.NOT)) {
+            Console.WriteLine("expression start");
+            if (check(TokenType.NOT))
+            {
                 match(TokenType.NOT);
                 operand();
             }
-            else if (peek() == TokenType.SEMICOLON)
+            else if (operators.Contains(peek()))
+            {
+                binaryExpression();
+            }
+            else
             {
                 match(TokenType.INT, TokenType.STRING, TokenType.IDENTIFIER);
             }
-            else if (operators.Contains(peek())) {
-                binaryExpression();
-            }
         }
 
-        private void binaryExpression() {
+        private void binaryExpression()
+        {
             operand();
             match(operators.ToArray());
             operand();
@@ -97,11 +145,14 @@ namespace MiniPl
 
         private void operand()
         {
-            if (check(TokenType.LEFT_PAREN)) {
+            if (check(TokenType.LEFT_PAREN))
+            {
                 match(TokenType.LEFT_PAREN);
                 expression();
                 match(TokenType.RIGHT_PAREN);
-            } else {
+            }
+            else
+            {
                 match(TokenType.INT, TokenType.STRING, TokenType.IDENTIFIER);
             }
         }
