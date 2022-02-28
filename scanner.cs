@@ -30,7 +30,7 @@ namespace MiniPl
             keywords["read"] = TokenType.READ;
             keywords["print"] = TokenType.PRINT;
             keywords["assert"] = TokenType.ASSERT;
-            keywords["bool"] = TokenType.BOOL;
+            keywords["bool"] = TokenType.BOOLTYPE;
             keywords["string"] = TokenType.STRINGTYPE;
             keywords["int"] = TokenType.INTTYPE;
 
@@ -136,7 +136,7 @@ namespace MiniPl
                         }
                         else
                         {
-                            Error e = new Error("invalid token " + c, line);
+                            Error e = new Error("SCANNER ERROR: invalid token " + c, line);
                             Console.WriteLine(e);
                         }
                         break;
@@ -146,7 +146,7 @@ namespace MiniPl
 
                 start++;
             }
-
+            tokens.Add(new Token(TokenType.EOF, "EOF", line));
             return tokens;
 
         }
@@ -300,7 +300,6 @@ namespace MiniPl
                 {
                     Error e = new Error("unclosed comment", line);
                     Console.WriteLine(e);
-                    start++;
                     break;
                 }
                 char c = text[current];

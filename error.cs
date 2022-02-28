@@ -15,7 +15,7 @@ namespace MiniPl
 
         public override string ToString()
         {
-            return "ERROR: " + message + " on line " + line;
+            return message + " on line " + line;
         }
     }
 

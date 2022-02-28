@@ -37,6 +37,9 @@ namespace MiniPl
                         Console.WriteLine(token);
                     }
                     Console.WriteLine("");
+
+                    Parser parser = new Parser(tokens);
+                    parser.parse();
                 }
                 else
                 {
