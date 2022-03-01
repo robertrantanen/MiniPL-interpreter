@@ -38,6 +38,22 @@ namespace MiniPl
             return null;
         }
 
+        private Node matchNextWithoutAdvancing(Node parent, params TokenType[] types)
+        {
+            foreach (TokenType type in types)
+            {
+                if (tokens[current+1].type == type)
+                {
+                    Node node = ast.add(tokens[current+1].type, tokens[current+1].value, parent);
+                    return node;
+                }
+            }
+            Error e = new Error("PARSE ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
+            Console.WriteLine(e);
+            errors = true;
+            return null;
+        }
+
 
         private bool check(TokenType type)
         {
@@ -64,11 +80,8 @@ namespace MiniPl
 
         private void statements(Node parent)
         {
-            //statement();
-            //match(TokenType.SEMICOLON);
             while (!check(TokenType.EOF) & !check(TokenType.END) & !errors)
             {
-                Console.WriteLine("statements start");
                 statement(parent);
                 match(parent, TokenType.SEMICOLON);
             }
@@ -76,7 +89,6 @@ namespace MiniPl
 
         private void statement(Node parent)
         {
-            Console.WriteLine("statement start");
             switch (tokens[current].type)
             {
                 case TokenType.VAR:
@@ -105,20 +117,20 @@ namespace MiniPl
                     Node n6 = match(parent, TokenType.FOR);
                     Node n7 = match(n6, TokenType.IDENTIFIER);
                     Node n8 = match(n7, TokenType.IN);
-                    expression(n8);
-                    match(n8, TokenType.DOUBLEDOT);
-                    expression(n8);
-                    Node n9 = match(n8, TokenType.DO);
-                    statements(n9);
-                    match(n9, TokenType.END);
-                    match(n9, TokenType.FOR);
+                    Node n9 = matchNextWithoutAdvancing(n8, TokenType.DOUBLEDOT);
+                    expression(n9);
+                    current++;
+                    expression(n9);
+                    Node n10 = match(n8, TokenType.DO);
+                    statements(n10);
+                    match(n10, TokenType.END);
+                    match(n10, TokenType.FOR);
                     return;
             }
         }
 
         private void variableDeclaration(Node parent)
         {
-            Console.WriteLine("variable start");
             Node n = match(parent, TokenType.VAR);
             Node n2 = match(n, TokenType.IDENTIFIER);
             Node n3 = match(n2, TokenType.COLON);
@@ -132,7 +144,6 @@ namespace MiniPl
 
         private void expression(Node parent)
         {
-            Console.WriteLine("expression start");
             if (check(TokenType.NOT))
             {
                 Node n = match(parent, TokenType.NOT);
@@ -150,11 +161,10 @@ namespace MiniPl
 
         private void binaryExpression(Node parent)
         {
-            Node node = ast.add(tokens[current+1].type, tokens[current+1].value, parent);
-            operand(node);
-            //match(parent, operators.ToArray());
+            Node n = matchNextWithoutAdvancing(parent, operators.ToArray());
+            operand(n);
             current++;
-            operand(node);
+            operand(n);
         }
 
         private void operand(Node parent)
