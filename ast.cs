@@ -7,14 +7,12 @@ namespace MiniPl
     class Node
     {
         public List<Node> childs { get; set; }
-        public TokenType type { get; set; }
-        public string data { get; set; }
+        public Token token { get; set; }
 
-        public Node(TokenType type_, string data_)
+        public Node(Token token_)
         {
             childs = new List<Node>();
-            type = type_;
-            data = data_;
+            token = token_;
         }
 
         public Node()
@@ -27,19 +25,19 @@ namespace MiniPl
     {
         public Node root { get; set; }
 
-        public Node add(TokenType t, string s, Node parent)
+        public Node add(Token t, Node parent)
         {
-            Node node = new Node(t, s);
+            Node node = new Node(t);
             parent.childs.Add(node);
             return node;
         }
 
         public void printChilds(Node node)
         {
-            Console.WriteLine("node: " + node.data);
+            Console.WriteLine("node: " + node.token.value);
             foreach (Node n in node.childs)
             {
-                Console.WriteLine(n.data);
+                Console.WriteLine(n.token.value);
             }
             foreach (Node n in node.childs)
             {
@@ -56,7 +54,7 @@ namespace MiniPl
                 {
                     traverse(node);
                 }
-                Console.WriteLine(parent.data);
+                Console.WriteLine(parent.token.value);
             }
         }
     }

@@ -39,7 +39,8 @@ namespace MiniPl
                     Console.WriteLine("");
 
                     Parser parser = new Parser(tokens);
-                    parser.parse();
+                    Ast ast = parser.parse();
+                    ast.printChilds(ast.root);
                 }
                 else
                 {

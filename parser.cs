@@ -21,13 +21,28 @@ namespace MiniPl
             tokens = tokens_;
         }
 
-        private Node match(Node parent, params TokenType[] types)
+        private void match(params TokenType[] types)
         {
             foreach (TokenType type in types)
             {
                 if (check(type))
                 {
-                    Node node = ast.add(tokens[current].type, tokens[current].value, parent);
+                    current++;
+                    return;
+                }
+            }
+            Error e = new Error("PARSE ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
+            Console.WriteLine(e);
+            errors = true;
+        }
+
+        private Node matchAddNode(Node parent, params TokenType[] types)
+        {
+            foreach (TokenType type in types)
+            {
+                if (check(type))
+                {
+                    Node node = ast.add(tokens[current], parent);
                     current++;
                     return node;
                 }
@@ -38,13 +53,13 @@ namespace MiniPl
             return null;
         }
 
-        private Node matchNextWithoutAdvancing(Node parent, params TokenType[] types)
+        private Node matchAddNextNodeWithoutAdvancing(Node parent, params TokenType[] types)
         {
             foreach (TokenType type in types)
             {
-                if (tokens[current+1].type == type)
+                if (tokens[current + 1].type == type)
                 {
-                    Node node = ast.add(tokens[current+1].type, tokens[current+1].value, parent);
+                    Node node = ast.add(tokens[current + 1], parent);
                     return node;
                 }
             }
@@ -65,17 +80,15 @@ namespace MiniPl
             return tokens[current + 1].type;
         }
 
-        public void parse()
+        public Ast parse()
         {
             current = 0;
             errors = false;
             ast = new Ast();
-            root = new Node(TokenType.EOF, "program");
+            root = new Node(new Token(TokenType.EOF, "program", 0));
             ast.root = root;
             statements(root);
-            Console.WriteLine();
-            ast.traverse(root);
-            ast.printChilds(root);
+            return ast;
         }
 
         private void statements(Node parent)
@@ -83,7 +96,7 @@ namespace MiniPl
             while (!check(TokenType.EOF) & !check(TokenType.END) & !errors)
             {
                 statement(parent);
-                match(parent, TokenType.SEMICOLON);
+                match(TokenType.SEMICOLON);
             }
         }
 
@@ -95,50 +108,50 @@ namespace MiniPl
                     variableDeclaration(parent);
                     return;
                 case TokenType.IDENTIFIER:
-                    Node n = match(parent, TokenType.IDENTIFIER);
-                    Node n2 = match(n, TokenType.STATEMENT);
-                    expression(n2);
+                    Node n = matchAddNode(parent, TokenType.IDENTIFIER);
+                    match(TokenType.STATEMENT);
+                    expression(n);
                     return;
                 case TokenType.READ:
-                    Node n3 = match(parent, TokenType.READ);
-                    match(n3, TokenType.IDENTIFIER);
+                    Node n2 = matchAddNode(parent, TokenType.READ);
+                    matchAddNode(n2, TokenType.IDENTIFIER);
                     return;
                 case TokenType.PRINT:
-                    Node n4 = match(parent, TokenType.PRINT);
-                    expression(n4);
+                    Node n3 = matchAddNode(parent, TokenType.PRINT);
+                    expression(n3);
                     return;
                 case TokenType.ASSERT:
-                    Node n5 = match(parent, TokenType.ASSERT);
-                    match(n5, TokenType.LEFT_PAREN);
-                    expression(n5);
-                    match(n5, TokenType.RIGHT_PAREN);
+                    Node n4 = matchAddNode(parent, TokenType.ASSERT);
+                    match(TokenType.LEFT_PAREN);
+                    expression(n4);
+                    match(TokenType.RIGHT_PAREN);
                     return;
                 case TokenType.FOR:
-                    Node n6 = match(parent, TokenType.FOR);
-                    Node n7 = match(n6, TokenType.IDENTIFIER);
-                    Node n8 = match(n7, TokenType.IN);
-                    Node n9 = matchNextWithoutAdvancing(n8, TokenType.DOUBLEDOT);
-                    expression(n9);
+                    Node n5 = matchAddNode(parent, TokenType.FOR);
+                    Node n6 = matchAddNode(n5, TokenType.IDENTIFIER);
+                    Node n7 = matchAddNode(n6, TokenType.IN);
+                    Node n8 = matchAddNextNodeWithoutAdvancing(n7, TokenType.DOUBLEDOT);
+                    expression(n8);
                     current++;
-                    expression(n9);
-                    Node n10 = match(n8, TokenType.DO);
-                    statements(n10);
-                    match(n10, TokenType.END);
-                    match(n10, TokenType.FOR);
+                    expression(n8);
+                    Node n9 = matchAddNode(n7, TokenType.DO);
+                    statements(n9);
+                    matchAddNode(n9, TokenType.END);
+                    match(TokenType.FOR);
                     return;
             }
         }
 
         private void variableDeclaration(Node parent)
         {
-            Node n = match(parent, TokenType.VAR);
-            Node n2 = match(n, TokenType.IDENTIFIER);
-            Node n3 = match(n2, TokenType.COLON);
-            Node n4 = match(n3, TokenType.INTTYPE, TokenType.STRINGTYPE, TokenType.BOOLTYPE);
+            Node n = matchAddNode(parent, TokenType.VAR);
+            Node n2 = matchAddNode(n, TokenType.IDENTIFIER);
+            match(TokenType.COLON);
+            Node n3 = matchAddNode(n2, TokenType.INTTYPE, TokenType.STRINGTYPE, TokenType.BOOLTYPE);
             if (check(TokenType.STATEMENT))
             {
-                Node n5 = match(n4, TokenType.STATEMENT);
-                expression(n5);
+                match(TokenType.STATEMENT);
+                expression(n3);
             }
         }
 
@@ -146,7 +159,7 @@ namespace MiniPl
         {
             if (check(TokenType.NOT))
             {
-                Node n = match(parent, TokenType.NOT);
+                Node n = matchAddNode(parent, TokenType.NOT);
                 operand(n);
             }
             else if (operators.Contains(peek()))
@@ -155,13 +168,13 @@ namespace MiniPl
             }
             else
             {
-                match(parent, TokenType.INT, TokenType.STRING, TokenType.IDENTIFIER);
+                matchAddNode(parent, TokenType.INT, TokenType.STRING, TokenType.IDENTIFIER);
             }
         }
 
         private void binaryExpression(Node parent)
         {
-            Node n = matchNextWithoutAdvancing(parent, operators.ToArray());
+            Node n = matchAddNextNodeWithoutAdvancing(parent, operators.ToArray());
             operand(n);
             current++;
             operand(n);
@@ -171,13 +184,13 @@ namespace MiniPl
         {
             if (check(TokenType.LEFT_PAREN))
             {
-                match(parent, TokenType.LEFT_PAREN);
+                match(TokenType.LEFT_PAREN);
                 expression(parent);
-                match(parent, TokenType.RIGHT_PAREN);
+                match(TokenType.RIGHT_PAREN);
             }
             else
             {
-                match(parent, TokenType.INT, TokenType.STRING, TokenType.IDENTIFIER);
+                matchAddNode(parent, TokenType.INT, TokenType.STRING, TokenType.IDENTIFIER);
             }
         }
 
