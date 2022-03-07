@@ -276,7 +276,7 @@ namespace MiniPl
         private void skipComment()
         {
             current = start;
-            while (current < end)
+            while (current < end-1)
             {
                 current++;
                 char c = text[current];
@@ -293,7 +293,7 @@ namespace MiniPl
         {
             current = start;
             int tempLine = line;
-            while (current < end)
+            while (current < end-1)
             {
                 current++;
                 if (current == end)
