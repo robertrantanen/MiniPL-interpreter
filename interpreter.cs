@@ -54,6 +54,7 @@ namespace MiniPl
                     print(node);
                     return;
                 case TokenType.READ:
+                    read(node);
                     return;
                 case TokenType.ASSERT:
                     return;
@@ -64,15 +65,25 @@ namespace MiniPl
 
         public void defineVariable(Node node)
         {
+            bool hasValue = false;
             Node iden = node.childs[0];
             Node type = iden.childs[0];
-            Node value = type.childs[0];
+            Node value = null;
+            if (type.childs.Count > 0)
+            {
+                value = type.childs[0];
+                hasValue = true;
+            }
             if (!variables.ContainsKey(iden.token.value))
             {
                 switch (type.token.type)
                 {
                     case TokenType.STRINGTYPE:
-                        if (value.token.type == TokenType.STRING)
+                        if (!hasValue)
+                        {
+                            variables.Add(iden.token.value, new Element(null, "string"));
+                        }
+                        else if (value.token.type == TokenType.STRING)
                         {
                             variables.Add(iden.token.value, new Element(value.token.value, "string"));
                         }
@@ -87,18 +98,13 @@ namespace MiniPl
                         }
                         return;
                     case TokenType.INTTYPE:
-                        if (value.token.type == TokenType.INT)
+                        if (!hasValue)
                         {
-                            variables.Add(iden.token.value, new Element(value.token.value, "int"));
-                        }
-                        else if (isArithmeticOperation(value.token.type))
-                        {
-                            variables.Add(iden.token.value, new Element(arithmetic(value).ToString(), "int"));
+                            variables.Add(iden.token.value, new Element(null, "int"));
                         }
                         else
                         {
-                            Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
-                            Console.WriteLine(e);
+                            variables.Add(iden.token.value, new Element(arithmetic(value).ToString(), "int"));
                         }
                         return;
                     case TokenType.BOOLTYPE:
@@ -136,19 +142,7 @@ namespace MiniPl
                         }
                         return;
                     case "int":
-                        if (value.token.type == TokenType.INT)
-                        {
-                            variables[node.token.value] = new Element(value.token.value, "int");
-                        }
-                        else if (isArithmeticOperation(value.token.type))
-                        {
-                            variables[node.token.value] = new Element(arithmetic(value).ToString(), "int");
-                        }
-                        else
-                        {
-                            Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
-                            Console.WriteLine(e);
-                        }
+                        variables[node.token.value] = new Element(arithmetic(value).ToString(), "int");
                         return;
                     case "bool":
                         return;
@@ -169,76 +163,50 @@ namespace MiniPl
 
         public int arithmetic(Node node)
         {
-            TokenType operation = node.token.type;
-            Node left = node.childs[0];
-            Node right = node.childs[1];
-            int leftint = 0;
-            int rightint = 0;
-            if (isArithmeticOperation(left.token.type))
+            if (node.token.type == TokenType.INT)
             {
-                leftint = arithmetic(left);
+                return Convert.ToInt32(node.token.value);
             }
-            else if (left.token.type == TokenType.INT)
+            else if (node.token.type == TokenType.IDENTIFIER)
             {
-                Int32.TryParse(left.token.value, out leftint);
-            }
-            else if (left.token.type == TokenType.IDENTIFIER)
-            {
-                if (variables.ContainsKey(left.token.value))
+                if (variables.ContainsKey(node.token.value))
                 {
-                    Int32.TryParse(variables[left.token.value].value, out leftint);
+                    return Convert.ToInt32(variables[node.token.value].value);
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", left.token.line);
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
                     Console.WriteLine(e);
+                }
+            }
+            else if (isArithmeticOperation(node.token.type))
+            {
+                TokenType operation = node.token.type;
+                Node left = node.childs[0];
+                Node right = node.childs[1];
+                int leftint = arithmetic(left);
+                int rightint = arithmetic(right);
+                if (operation == TokenType.PLUS)
+                {
+                    return leftint + rightint;
+                }
+                else if (operation == TokenType.MINUS)
+                {
+                    return leftint - rightint;
+                }
+                else if (operation == TokenType.STAR)
+                {
+                    return leftint * rightint;
+                }
+                else if (operation == TokenType.SLASH)
+                {
+                    return leftint / rightint;
                 }
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: invalid type, excepted int", node.token.line);
                 Console.WriteLine(e);
-            }
-            if (isArithmeticOperation(right.token.type))
-            {
-                rightint = arithmetic(right);
-            }
-            else if (right.token.type == TokenType.INT)
-            {
-                Int32.TryParse(right.token.value, out rightint);
-            }
-            else if (right.token.type == TokenType.IDENTIFIER)
-            {
-                if (variables.ContainsKey(right.token.value))
-                {
-                    Int32.TryParse(variables[right.token.value].value, out rightint);
-                }
-                else
-                {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", right.token.line);
-                    Console.WriteLine(e);
-                }
-            }
-            else
-            {
-                Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
-                Console.WriteLine(e);
-            }
-            if (operation == TokenType.PLUS)
-            {
-                return leftint + rightint;
-            }
-            else if (operation == TokenType.MINUS)
-            {
-                return leftint - rightint;
-            }
-            else if (operation == TokenType.STAR)
-            {
-                return leftint * rightint;
-            }
-            else if (operation == TokenType.SLASH)
-            {
-                return leftint / rightint;
             }
             return 0;
         }
@@ -252,7 +220,15 @@ namespace MiniPl
             {
                 if (variables.ContainsKey(printable.token.value))
                 {
-                    Console.WriteLine(variables[printable.token.value].value);
+                    if (variables[printable.token.value].value == null)
+                    {
+                        Error e = new Error("SEMANTIC ERROR: null variable", node.token.line);
+                        Console.WriteLine(e);
+                    }
+                    else
+                    {
+                        Console.WriteLine(variables[printable.token.value].value);
+                    }
                 }
                 else
                 {
@@ -268,7 +244,44 @@ namespace MiniPl
 
         public void read(Node node)
         {
+            Node readable = node.childs[0];
+            if (readable.token.type == TokenType.IDENTIFIER)
+            {
+                if (variables.ContainsKey(readable.token.value))
+                {
+                    Element element = variables[readable.token.value];
+                    if (element.type.Equals("string"))
+                    {
 
+                        string x = Console.ReadLine();
+                        variables[readable.token.value] = new Element(x, "string");
+                    }
+                    else if (element.type.Equals("int"))
+                    {
+                        try
+                        {
+                            int x = Convert.ToInt32(Console.ReadLine());
+                            variables[readable.token.value] = new Element(x.ToString(), "int");
+                        }
+                        catch
+                        {
+                            Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
+                            Console.WriteLine(e);
+                        }
+
+                    }
+                }
+                else
+                {
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                    Console.WriteLine(e);
+                }
+            }
+            else
+            {
+                Error e = new Error("SEMANTIC ERROR: excepted variable", node.token.line);
+                Console.WriteLine(e);
+            }
         }
 
 
