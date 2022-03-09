@@ -7,11 +7,11 @@ namespace MiniPl
     class Element
     {
 
-        public string value { get; set; }
+        public Object value { get; set; }
         public string type { get; set; }
 
 
-        public Element(string value_, string type_)
+        public Element(Object value_, string type_)
         {
 
             value = value_;
@@ -57,6 +57,7 @@ namespace MiniPl
                     read(node);
                     return;
                 case TokenType.ASSERT:
+                    assert(node);
                     return;
                 case TokenType.FOR:
                     return;
@@ -104,7 +105,7 @@ namespace MiniPl
                         }
                         else
                         {
-                            variables.Add(iden.token.value, new Element(arithmetic(value).ToString(), "int"));
+                            variables.Add(iden.token.value, new Element(arithmetic(value), "int"));
                         }
                         return;
                     case TokenType.BOOLTYPE:
@@ -129,11 +130,7 @@ namespace MiniPl
                     case "string":
                         if (value.token.type == TokenType.STRING)
                         {
-                            variables[node.token.value] = new Element(value.token.value, "string");
-                        }
-                        else if (value.token.type == TokenType.PLUS)
-                        {
-
+                            variables[node.token.value].value = value.token.value;
                         }
                         else
                         {
@@ -142,7 +139,7 @@ namespace MiniPl
                         }
                         return;
                     case "int":
-                        variables[node.token.value] = new Element(arithmetic(value).ToString(), "int");
+                        variables[node.token.value].value = arithmetic(value);
                         return;
                     case "bool":
                         return;
@@ -254,14 +251,14 @@ namespace MiniPl
                     {
 
                         string x = Console.ReadLine();
-                        variables[readable.token.value] = new Element(x, "string");
+                        variables[readable.token.value].value = x;
                     }
                     else if (element.type.Equals("int"))
                     {
                         try
                         {
                             int x = Convert.ToInt32(Console.ReadLine());
-                            variables[readable.token.value] = new Element(x.ToString(), "int");
+                            variables[readable.token.value].value = x;
                         }
                         catch
                         {
@@ -287,7 +284,25 @@ namespace MiniPl
 
         public void assert(Node node)
         {
+            Node operation = node.childs[0];
+            TokenType symbol = operation.token.type;
+            Node left = null;
+            Node right = null;
+            bool assertion = true;
+            if (symbol == TokenType.EQUAL) {
+                left = operation.childs[0];
+                right = operation.childs[1];
+                if (arithmetic(left) != arithmetic(right)) {
+                    assertion = false;
+                }
+            } else if (symbol == TokenType.LESS) {
 
+            } else {
+
+            }
+            if (!assertion) {
+                Console.WriteLine("Assertion failed!");
+            }
         }
 
         public void forLoop(Node node)
