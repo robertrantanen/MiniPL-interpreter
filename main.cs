@@ -12,6 +12,7 @@ namespace MiniPl
         {
             while (true)
             {
+                Console.WriteLine();
                 Console.WriteLine("enter filename, or empty to exit");
 
                 string text = Console.ReadLine();
@@ -30,17 +31,17 @@ namespace MiniPl
 
                     Scanner scanner = new Scanner();
                     List<Token> tokens = scanner.scan(file);
-                    Console.WriteLine(tokens.Count + " tokens");
+                    //Console.WriteLine(tokens.Count + " tokens");
 
-                    foreach (var token in tokens)
-                    {
-                        Console.WriteLine(token);
-                    }
-                    Console.WriteLine("");
+                    // foreach (var token in tokens)
+                    // {
+                    //     Console.WriteLine(token);
+                    // }
+                    //Console.WriteLine("");
 
                     Parser parser = new Parser(tokens);
                     Ast ast = parser.parse();
-                    ast.printChilds(ast.root);
+                    //ast.printChilds(ast.root);
                     Interpreter interpreter = new Interpreter(ast);
                     Console.WriteLine("Program start");
                     interpreter.start();

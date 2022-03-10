@@ -136,7 +136,7 @@ namespace MiniPl
                     expression(n8);
                     Node n9 = matchAddNode(n7, TokenType.DO);
                     statements(n9);
-                    matchAddNode(n9, TokenType.END);
+                    match(TokenType.END);
                     match(TokenType.FOR);
                     return;
             }
