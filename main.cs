@@ -12,7 +12,6 @@ namespace MiniPl
         {
             while (true)
             {
-                Console.WriteLine();
                 Console.WriteLine("enter filename, or empty to exit");
 
                 string text = Console.ReadLine();
@@ -37,7 +36,7 @@ namespace MiniPl
                     // {
                     //     Console.WriteLine(token);
                     // }
-                    //Console.WriteLine("");
+                    // Console.WriteLine("");
 
                     Parser parser = new Parser(tokens);
                     Ast ast = parser.parse();
@@ -48,10 +47,9 @@ namespace MiniPl
                 }
                 else
                 {
-                    Console.WriteLine("");
                     Console.WriteLine("File not found");
-                    Console.WriteLine("");
                 }
+                Console.WriteLine();
             }
 
         }

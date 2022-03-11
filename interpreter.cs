@@ -18,6 +18,7 @@ namespace MiniPl
             type = type_;
         }
     }
+
     class Interpreter
     {
 
@@ -36,11 +37,10 @@ namespace MiniPl
             foreach (Node node in ast.root.childs)
             {
                 statement(node);
-
             }
         }
 
-        public void statement(Node node)
+        private void statement(Node node)
         {
             switch (node.token.type)
             {
@@ -65,7 +65,7 @@ namespace MiniPl
             }
         }
 
-        public void defineVariable(Node node)
+        private void defineVariable(Node node)
         {
             bool hasValue = false;
             Node iden = node.childs[0];
@@ -114,12 +114,12 @@ namespace MiniPl
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: variable already defined", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: variable " + iden.token.value + " already defined", node.token.line);
                 Console.WriteLine(e);
             }
         }
 
-        public void editVariable(Node node)
+        private void editVariable(Node node)
         {
             if (variables.ContainsKey(node.token.value))
             {
@@ -140,18 +140,18 @@ namespace MiniPl
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                 Console.WriteLine(e);
             }
         }
 
 
-        public bool isArithmeticOperation(TokenType type)
+        private bool isArithmeticOperation(TokenType type)
         {
             return (type == TokenType.PLUS | type == TokenType.MINUS | type == TokenType.STAR | type == TokenType.SLASH);
         }
 
-        public int arithmetic(Node node)
+        private int arithmetic(Node node)
         {
             if (node.token.type == TokenType.INT)
             {
@@ -165,7 +165,7 @@ namespace MiniPl
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                     Console.WriteLine(e);
                 }
             }
@@ -195,13 +195,13 @@ namespace MiniPl
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: invalid type, excepted int", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: invalid type " + node.token.type + " ,expected int", node.token.line);
                 Console.WriteLine(e);
             }
             return 0;
         }
 
-        public string stringOperation(Node node)
+        private string stringOperation(Node node)
         {
             if (node.token.type == TokenType.STRING)
             {
@@ -215,7 +215,7 @@ namespace MiniPl
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                     Console.WriteLine(e);
                 }
             }
@@ -227,13 +227,13 @@ namespace MiniPl
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: invalid type, excepted string", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: invalid type " + node.token.type + " ,excpected string", node.token.line);
                 Console.WriteLine(e);
             }
             return "";
         }
 
-        public bool booleanOperation(Node node)
+        private bool booleanOperation(Node node)
         {
             Node left = null;
             Node right = null;
@@ -245,7 +245,7 @@ namespace MiniPl
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                     Console.WriteLine(e);
                 }
             }
@@ -253,13 +253,13 @@ namespace MiniPl
             {
                 left = node.childs[0];
                 right = node.childs[1];
-                return (arithmetic(left) == arithmetic(left));
+                return (arithmetic(left) == arithmetic(right));
             }
             else if (node.token.type == TokenType.LESS)
             {
                 left = node.childs[0];
                 right = node.childs[1];
-                return (arithmetic(left) < arithmetic(left));
+                return (arithmetic(left) < arithmetic(right));
             }
             else if (node.token.type == TokenType.NOT)
             {
@@ -274,7 +274,7 @@ namespace MiniPl
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: invalid type, excepted boolean operation", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: invalid type " + node.token.type + " ,expected boolean operation", node.token.line);
                 Console.WriteLine(e);
             }
             return false;
@@ -282,7 +282,7 @@ namespace MiniPl
 
 
 
-        public void print(Node node)
+        private void print(Node node)
         {
             Node printable = node.childs[0];
             if (printable.token.type == TokenType.IDENTIFIER)
@@ -301,7 +301,7 @@ namespace MiniPl
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                     Console.WriteLine(e);
                 }
             }
@@ -311,7 +311,7 @@ namespace MiniPl
             }
         }
 
-        public void read(Node node)
+        private void read(Node node)
         {
             Node readable = node.childs[0];
             Console.WriteLine();
@@ -334,7 +334,7 @@ namespace MiniPl
                         }
                         catch
                         {
-                            Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
+                            Error e = new Error("SEMANTIC ERROR: expected to read int", node.token.line);
                             Console.WriteLine(e);
                         }
 
@@ -342,19 +342,19 @@ namespace MiniPl
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                    Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                     Console.WriteLine(e);
                 }
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: excepted variable", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: expected to read a variable", node.token.line);
                 Console.WriteLine(e);
             }
         }
 
 
-        public void assert(Node node)
+        private void assert(Node node)
         {
             Node oper = node.childs[0];
             if (!booleanOperation(oper))
@@ -363,7 +363,7 @@ namespace MiniPl
             }
         }
 
-        public void forLoop(Node node)
+        private void forLoop(Node node)
         {
             Node var = node.childs[0];
             Node in_ = var.childs[0];
@@ -380,26 +380,33 @@ namespace MiniPl
             {
                 if (variables[var.token.value].type.Equals("int"))
                 {
-                    variables[var.token.value].value = startVar;
-                    while (Convert.ToInt32(variables[var.token.value].value) <= endVar)
+                    if (startVar <= endVar)
                     {
-                        foreach (Node n in do_.childs)
+                        variables[var.token.value].value = startVar;
+                        while (Convert.ToInt32(variables[var.token.value].value) <= endVar)
                         {
-                            statement(n);
-
+                            foreach (Node n in do_.childs)
+                            {
+                                statement(n);
+                            }
+                            variables[var.token.value].value = Convert.ToInt32(variables[var.token.value].value) + 1;
                         }
-                        variables[var.token.value].value = Convert.ToInt32(variables[var.token.value].value) + 1;
+                    }
+                    else
+                    {
+                        Error e = new Error("SEMANTIC ERROR: for loop start value should be smaller than end value", node.token.line);
+                        Console.WriteLine(e);
                     }
                 }
                 else
                 {
-                    Error e = new Error("SEMANTIC ERROR: excepted int", node.token.line);
+                    Error e = new Error("SEMANTIC ERROR: expected integer for loop variable", node.token.line);
                     Console.WriteLine(e);
                 }
             }
             else
             {
-                Error e = new Error("SEMANTIC ERROR: undeclared variable", node.token.line);
+                Error e = new Error("SEMANTIC ERROR: undeclared variable " + node.token.value, node.token.line);
                 Console.WriteLine(e);
             }
         }
