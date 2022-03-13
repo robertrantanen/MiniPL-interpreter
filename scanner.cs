@@ -136,7 +136,7 @@ namespace MiniPl
                         }
                         else
                         {
-                            Error e = new Error("SCANNER ERROR: invalid token " + c, line);
+                            Error e = new Error("LEXICAL ERROR: invalid token " + c, line);
                             Console.WriteLine(e);
                         }
                         break;
@@ -159,7 +159,7 @@ namespace MiniPl
             }
             else
             {
-                Error e = new Error("end of file error", line);
+                Error e = new Error("LEXICAL ERROR: end of file", line);
                 Console.WriteLine(e);
                 return '\0';
             }
@@ -191,7 +191,7 @@ namespace MiniPl
                 current++;
                 if (current == end)
                 {
-                    Error e = new Error("unclosed string", line);
+                    Error e = new Error("LEXICAL ERROR: unclosed string", line);
                     Console.WriteLine(e);
                     break;
                 }
@@ -298,7 +298,7 @@ namespace MiniPl
                 current++;
                 if (current == end)
                 {
-                    Error e = new Error("unclosed comment", line);
+                    Error e = new Error("LEXICAL ERROR: unclosed comment", line);
                     Console.WriteLine(e);
                     break;
                 }

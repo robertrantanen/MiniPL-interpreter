@@ -291,7 +291,7 @@ namespace MiniPl
                 {
                     if (variables[printable.token.value].value == null)
                     {
-                        Error e = new Error("SEMANTIC ERROR: null variable", node.token.line);
+                        Error e = new Error("SEMANTIC ERROR: null variable " + printable.token.value, node.token.line);
                         Console.WriteLine(e);
                     }
                     else
@@ -382,6 +382,7 @@ namespace MiniPl
                 {
                     if (startVar <= endVar)
                     {
+                        variables[var.token.value].type = "control variable";
                         variables[var.token.value].value = startVar;
                         while (Convert.ToInt32(variables[var.token.value].value) <= endVar)
                         {
@@ -391,6 +392,7 @@ namespace MiniPl
                             }
                             variables[var.token.value].value = Convert.ToInt32(variables[var.token.value].value) + 1;
                         }
+                        variables[var.token.value].type = "int";
                     }
                     else
                     {

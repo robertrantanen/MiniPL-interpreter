@@ -31,7 +31,7 @@ namespace MiniPl
                     return;
                 }
             }
-            Error e = new Error("PARSE ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
+            Error e = new Error("SYNTAX ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
             Console.WriteLine(e);
             errors = true;
         }
@@ -47,7 +47,7 @@ namespace MiniPl
                     return node;
                 }
             }
-            Error e = new Error("PARSE ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
+            Error e = new Error("SYNTAX ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
             Console.WriteLine(e);
             errors = true;
             return null;
@@ -63,7 +63,7 @@ namespace MiniPl
                     return node;
                 }
             }
-            Error e = new Error("PARSE ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
+            Error e = new Error("SYNTAX ERROR: excepted token type " + types[0] + " but was " + tokens[current].type, tokens[current].line);
             Console.WriteLine(e);
             errors = true;
             return null;
